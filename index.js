@@ -11,9 +11,10 @@ app.use(cors());
 app.use(express.json());
 
 try {
-    // { force: true } to force db to reset and pick up changes on server restart
+    // { force: true } to force db to clear all data
     await sequelize.query('SET FOREIGN_KEY_CHECKS = 0').then(data => {
-        sequelize.sync({force: true});
+        // sequelize.sync({force: true});
+        sequelize.sync({force: false, alter: true});
     }).then(data => {
         sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
         console.log('Database synchronized.');

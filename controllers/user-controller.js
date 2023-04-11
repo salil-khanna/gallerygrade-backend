@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ["userName", "favoriteArtStyle"],
+      attributes: ["username", "favoriteArtStyle"],
       limit: 4,
       order: Sequelize.literal("rand()"),
     });
@@ -20,13 +20,13 @@ router.get("/", async (req, res) => {
 });
 
 // Get information about a specific user
-router.get("/:userName", async (req, res) => {
-  const { userName } = req.params;
+router.get("/:username", async (req, res) => {
+  const { username } = req.params;
 
   try {
     const user = await User.findOne({
       attributes: ["aboutMe", "favoriteArtStyle"],
-      where: { userName },
+      where: { username },
     });
 
     if (!user) {
@@ -40,12 +40,12 @@ router.get("/:userName", async (req, res) => {
   }
 });
 
-router.get("/:userName/:id", async (req, res) => {
-    const { userName, id } = req.params;
+router.get("/:username/:id", async (req, res) => {
+    const { username, id } = req.params;
   
     try {
       const user = await User.findOne({
-        where: { userName, id },
+        where: { username, id },
       });
   
       if (!user) {
@@ -63,7 +63,7 @@ router.get("/:userName/:id", async (req, res) => {
 router.post("/register", async (req, res) => {
   try {
     const {
-      userName,
+      username,
       password,
       secretQuestion,
       secretAnswer,
@@ -75,7 +75,7 @@ router.post("/register", async (req, res) => {
     const hashedSecretAnswer = await bcrypt.hash(secretAnswer, 10);
 
     const newUser = await User.create({
-      userName,
+      username,
       password: hashedPassword,
       secretQuestion,
       secretAnswer: hashedSecretAnswer,
@@ -85,9 +85,7 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json({
         id: newUser.id,
-        userName: newUser.userName,
-        aboutMe: newUser.aboutMe,
-        favoriteArtStyle: newUser.favoriteArtStyle,
+        username: newUser.username,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -96,10 +94,10 @@ router.post("/register", async (req, res) => {
 
 // Login
 router.post("/login", async (req, res) => {
-  const { userName, password } = req.body;
+  const { username, password } = req.body;
 
   try {
-    const user = await User.findOne({ where: { userName } });
+    const user = await User.findOne({ where: { username } });
 
     if (!user) {
       res.status(404).json({ error: "User not found" });
@@ -121,10 +119,10 @@ router.post("/login", async (req, res) => {
 
 // Check secret question and answer
 router.post("/secret-question", async (req, res) => {
-  const { userName, secretQuestion, secretAnswer } = req.body;
+  const { username, secretQuestion, secretAnswer } = req.body;
 
   try {
-    const user = await User.findOne({ where: { userName } });
+    const user = await User.findOne({ where: { username } });
 
     if (!user) {
       res.status(404).json({ error: "User not found" });
@@ -154,10 +152,10 @@ router.post("/secret-question", async (req, res) => {
 
 // Reset password
 router.put("/reset-password", async (req, res) => {
-  const { userName, secretQuestion, secretAnswer, newPassword, id } = req.body;
+  const { username, secretQuestion, secretAnswer, newPassword, id } = req.body;
 
   try {
-    const user = await User.findOne({ where: { userName, id } });
+    const user = await User.findOne({ where: { username, id } });
 
     if (!user) {
       res.status(404).json({ error: "User not found" });
@@ -192,7 +190,7 @@ router.put("/reset-password", async (req, res) => {
 router.put("/", async (req, res) => {
     const {
       id,
-      userName,
+      username,
       password,
       secretQuestion,
       secretAnswer,
@@ -201,7 +199,7 @@ router.put("/", async (req, res) => {
     } = req.body;
   
     try {
-      const user = await User.findOne({ where: { userName, id } });
+      const user = await User.findOne({ where: { username, id } });
   
       if (!user) {
         res.status(404).json({ error: "User not found" });
@@ -227,10 +225,10 @@ router.put("/", async (req, res) => {
   
 // Delete user
 router.delete("/", async (req, res) => {
-    const { userName, id } = req.body;
+    const { username, id } = req.body;
   
     try {
-      const user = await User.findOne({ where: { userName, id } });
+      const user = await User.findOne({ where: { username, id } });
   
       if (!user) {
         res.status(404).json({ error: "User not found" });
@@ -238,7 +236,7 @@ router.delete("/", async (req, res) => {
       }
   
       await user.destroy();
-      res.status(200).end();
+      res.status(200).end({ message: "success" });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
