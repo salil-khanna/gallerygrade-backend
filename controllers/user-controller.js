@@ -30,7 +30,7 @@ router.get("/:username", async (req, res) => {
     });
 
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      res.status(401).json({ error: "User not found" });
       return;
     }
 
@@ -42,7 +42,6 @@ router.get("/:username", async (req, res) => {
 
 router.get("/:username/:id", async (req, res) => {
     try {
-        console.log("here")
       const { username, id } = req.params;
       const user = await User.findOne({
         where: { username, id },
@@ -186,7 +185,7 @@ router.put("/update-user-info", async (req, res) => {
       const user = await User.findOne({ where: { username, id } });
   
       if (!user) {
-        res.status(404).json({ error: "User not found" });
+        res.status(401).json({ error: "User not found" });
         return;
       }
 
