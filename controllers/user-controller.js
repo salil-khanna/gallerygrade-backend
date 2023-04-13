@@ -41,9 +41,9 @@ router.get("/:username", async (req, res) => {
 });
 
 router.get("/:username/:id", async (req, res) => {
-    const { username, id } = req.params;
-  
     try {
+        console.log("here")
+      const { username, id } = req.params;
       const user = await User.findOne({
         where: { username, id },
       });
@@ -71,6 +71,15 @@ router.post("/register", async (req, res) => {
       favoriteArtStyle,
     } = req.body;
 
+
+    const user = await User.findOne({ where: { username } });
+
+    if (user) {
+      res.status(409).json({ error: "User already exists, please login or try different username" });
+      return;
+    }
+
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const hashedSecretAnswer = await bcrypt.hash(secretAnswer, 10);
 
@@ -94,13 +103,13 @@ router.post("/register", async (req, res) => {
 
 // Login
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-
   try {
+    const { username, password } = req.body;
+
     const user = await User.findOne({ where: { username } });
 
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      res.status(401).json({ error: "User not found" });
       return;
     }
 
@@ -119,13 +128,13 @@ router.post("/login", async (req, res) => {
 
 // Check secret question and answer
 router.post("/secret-question", async (req, res) => {
-  const { username, secretQuestion, secretAnswer } = req.body;
-
   try {
+    const { username, secretQuestion, secretAnswer } = req.body;
+
     const user = await User.findOne({ where: { username } });
 
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      res.status(401).json({ error: "User not found" });
       return;
     }
 
@@ -152,82 +161,60 @@ router.post("/secret-question", async (req, res) => {
 
 // Reset password
 router.put("/reset-password", async (req, res) => {
-  const { username, secretQuestion, secretAnswer, newPassword, id } = req.body;
-
   try {
+    const { username, password, id } = req.body;
     const user = await User.findOne({ where: { username, id } });
 
     if (!user) {
-      res.status(404).json({ error: "User not found" });
+      res.status(401).json({ error: "User not found" });
       return;
     }
 
-    if (user.secretQuestion !== secretQuestion) {
-      res.status(401).json({ error: "Incorrect secret question" });
-      return;
-    }
-
-    const isSecretAnswerValid = await bcrypt.compare(
-      secretAnswer,
-      user.secretAnswer
-    );
-
-    if (!isSecretAnswerValid) {
-      res.status(401).json({ error: "Incorrect secret answer" });
-      return;
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    const hashedNewPassword = await bcrypt.hash(password, 10);
     await user.update({ password: hashedNewPassword });
 
-    res.status(200).end();
+    res.status(201).json({ id: id });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Update user
-router.put("/", async (req, res) => {
-    const {
-      id,
-      username,
-      password,
-      secretQuestion,
-      secretAnswer,
-      aboutMe,
-      favoriteArtStyle,
-    } = req.body;
-  
+// Reset secret question
+router.put("/update-user-info", async (req, res) => {
     try {
+      const { username, id, password, secretQuestion, secretAnswer, aboutMe, favoriteArtStyle } = req.body;
       const user = await User.findOne({ where: { username, id } });
   
       if (!user) {
         res.status(404).json({ error: "User not found" });
         return;
       }
+
+      if (password !== '') {
+        const hashedNewPassword = await bcrypt.hash(password, 10);
+        await user.update({ password: hashedNewPassword });
+      }
+
+
+      if (secretAnswer !== '') {
+        const hashedNewSecretAnswer = await bcrypt.hash(secretAnswer, 10);
+        await user.update({ secretQuestion: secretQuestion , secretAnswer: hashedNewSecretAnswer });
+      }
+
+      await user.update({aboutMe: aboutMe, favoriteArtStyle: favoriteArtStyle})
   
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const hashedSecretAnswer = await bcrypt.hash(secretAnswer, 10);
-  
-      await user.update({
-        password: hashedPassword,
-        secretQuestion,
-        secretAnswer: hashedSecretAnswer,
-        aboutMe,
-        favoriteArtStyle,
-      });
-  
-      res.status(201).json({ message: "success" });
+      res.status(201).json({ id: id });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-});
+  });
+
   
 // Delete user
 router.delete("/", async (req, res) => {
-    const { username, id } = req.body;
-  
     try {
+      const { username, id } = req.body;
+
       const user = await User.findOne({ where: { username, id } });
   
       if (!user) {
@@ -236,9 +223,19 @@ router.delete("/", async (req, res) => {
       }
   
       await user.destroy();
-      res.status(200).end({ message: "success" });
+      res.status(200).json({ message: "success" });
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+});
+
+// REMOVE LATER
+router.delete("/delete-all", async (req, res) => {
+    try {
+        await User.destroy({ where: {} });
+        res.status(200).json({ message: "success" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
