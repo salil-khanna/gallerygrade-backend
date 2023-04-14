@@ -9,8 +9,8 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ["username", "favoriteArtStyle"],
-      limit: 4,
+      attributes: ["username", "aboutMe", "favoriteArtStyle"],
+      limit: 5,
       order: Sequelize.literal("rand()"),
     });
     res.json(users);
@@ -48,7 +48,7 @@ router.get("/:username/:id", async (req, res) => {
       });
   
       if (!user) {
-        res.status(404).json({ error: "User not found" });
+        res.status(404).json({ error: "Profile not found. Logging out..." });
         return;
       }
   
@@ -217,7 +217,7 @@ router.delete("/", async (req, res) => {
       const user = await User.findOne({ where: { username, id } });
   
       if (!user) {
-        res.status(404).json({ error: "User not found" });
+        res.status(404).json({ error: "Profile not found, logging out..." });
         return;
       }
   
