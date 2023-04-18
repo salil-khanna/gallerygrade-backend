@@ -1,9 +1,12 @@
 import express from "express";
-import User from "../models/User.js";
+import User from "../models/user.js";
+import Bookmarks from "../models/bookmarks.js";
 import bcrypt from "bcrypt";
 import Sequelize from "sequelize";
 
+
 const router = express.Router();
+
 
 // Get 4 random users
 router.get("/", async (req, res) => {
@@ -40,11 +43,11 @@ router.get("/:username", async (req, res) => {
   }
 });
 
-router.get("/:username/:id", async (req, res) => {
+router.get("/:username/:user_id", async (req, res) => {
     try {
-      const { username, id } = req.params;
+      const { username, user_id } = req.params;
       const user = await User.findOne({
-        where: { username, id },
+        where: { username, user_id },
       });
   
       if (!user) {
@@ -92,7 +95,7 @@ router.post("/register", async (req, res) => {
     });
 
     res.status(201).json({
-        id: newUser.id,
+        user_id: newUser.user_id,
         username: newUser.username,
     });
   } catch (error) {
@@ -119,7 +122,7 @@ router.post("/login", async (req, res) => {
       return;
     }
 
-    res.status(200).json({ id: user.id });
+    res.status(200).json({ user_id: user.user_id });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -152,7 +155,7 @@ router.post("/secret-question", async (req, res) => {
       return;
     }
 
-    res.status(200).json({ id: user.id });
+    res.status(200).json({ user_id: user.user_id });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -161,8 +164,8 @@ router.post("/secret-question", async (req, res) => {
 // Reset password
 router.put("/reset-password", async (req, res) => {
   try {
-    const { username, password, id } = req.body;
-    const user = await User.findOne({ where: { username, id } });
+    const { username, password, user_id } = req.body;
+    const user = await User.findOne({ where: { username, user_id } });
 
     if (!user) {
       res.status(401).json({ error: "User not found" });
@@ -172,7 +175,7 @@ router.put("/reset-password", async (req, res) => {
     const hashedNewPassword = await bcrypt.hash(password, 10);
     await user.update({ password: hashedNewPassword });
 
-    res.status(201).json({ id: id });
+    res.status(201).json({ user_id: user_id });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -181,8 +184,8 @@ router.put("/reset-password", async (req, res) => {
 // Reset secret question
 router.put("/update-user-info", async (req, res) => {
     try {
-      const { username, id, password, secretQuestion, secretAnswer, aboutMe, favoriteArtStyle } = req.body;
-      const user = await User.findOne({ where: { username, id } });
+      const { username, user_id, password, secretQuestion, secretAnswer, aboutMe, favoriteArtStyle } = req.body;
+      const user = await User.findOne({ where: { username, user_id } });
   
       if (!user) {
         res.status(401).json({ error: "User not found" });
@@ -202,7 +205,7 @@ router.put("/update-user-info", async (req, res) => {
 
       await user.update({aboutMe: aboutMe, favoriteArtStyle: favoriteArtStyle})
   
-      res.status(201).json({ id: id });
+      res.status(201).json({ user_id: user_id });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -212,15 +215,17 @@ router.put("/update-user-info", async (req, res) => {
 // Delete user
 router.delete("/", async (req, res) => {
     try {
-      const { username, id } = req.body;
+      const { username, user_id } = req.body;
 
-      const user = await User.findOne({ where: { username, id } });
+      const user = await User.findOne({ where: { username, user_id } });
   
       if (!user) {
         res.status(404).json({ error: "Profile not found, logging out..." });
         return;
       }
-  
+
+      await Bookmarks.destroy({ where: { user_id } });
+      await Reviews.destroy({ where: { user_id } });
       await user.destroy();
       res.status(200).json({ message: "success" });
     } catch (error) {
@@ -233,6 +238,15 @@ router.delete("/delete-all", async (req, res) => {
     try {
         await User.destroy({ where: {} });
         res.status(200).json({ message: "success" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get("/all", async (req, res) => {
+    try {
+        const users = await User.findAll();
+        res.json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

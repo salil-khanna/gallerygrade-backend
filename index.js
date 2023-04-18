@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import sequelize from "./models/index.js";
 import userController from "./controllers/user-controller.js";
+import bookmarkController from "./controllers/bookmark-controller.js";
+import artController from "./controllers/art-controller.js";
+import reviewController from "./controllers/review-controller.js";
 
 
 const app = express();
@@ -31,6 +34,9 @@ app.get('/', (req, res) => {
 
 // Base route for user actions.
 app.use('/users', userController);
+app.use('/bookmarks', bookmarkController);
+app.use('/art', artController);
+app.use('/reviews', reviewController);
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });

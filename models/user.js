@@ -1,10 +1,8 @@
-// User.js
-
 import sequelize from "./index.js";
 import { DataTypes } from "sequelize";
 
 const User = sequelize.define("User", {
-  id: {
+  user_id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
