@@ -10,6 +10,10 @@ import reviewController from "./controllers/review-controller.js";
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}.`);
+});
+
 app.use(cors());
 app.use(express.json());
 
@@ -29,7 +33,7 @@ try {
 
 //hello world on /
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.send('App running!');
 });
 
 // Base route for user actions.
@@ -37,6 +41,3 @@ app.use('/users', userController);
 app.use('/bookmarks', bookmarkController);
 app.use('/art', artController);
 app.use('/reviews', reviewController);
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}.`);
-});
