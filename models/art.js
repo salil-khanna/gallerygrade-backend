@@ -2,7 +2,7 @@ import sequelize from "./index.js";
 import { DataTypes } from "sequelize";
 
 const Art = sequelize.define("Art", {
-  image_id: {
+  art_id: {
     type: DataTypes.STRING,
     allowNull: false,
     primaryKey: true,

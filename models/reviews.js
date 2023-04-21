@@ -9,7 +9,7 @@ const Reviews = sequelize.define("Reviews", {
         primaryKey: true,
         unique: true,
     },
-  image_id: {
+  art_id: {
     type: DataTypes.STRING,
     allowNull: false,
   },

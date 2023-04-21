@@ -10,12 +10,10 @@ import reviewController from "./controllers/review-controller.js";
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}.`);
-});
-
 app.use(cors());
 app.use(express.json());
+
+
 
 try {
     // { force: true } to force db to clear all data
@@ -41,3 +39,12 @@ app.use('/users', userController);
 app.use('/bookmarks', bookmarkController);
 app.use('/art', artController);
 app.use('/reviews', reviewController);
+
+// Catch-all route for any other requests.
+app.get('*', (req, res) => {
+    res.status(404).send('Page not found.');
+})
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}.`);
+});

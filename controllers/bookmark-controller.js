@@ -40,15 +40,15 @@ router.get("/:user_id/:username", async (req, res) => {
 // Add a bookmark
 router.post("/", async (req, res) => {
   try {
-    const { image_id, user_id, username, image_url, image_title } = req.body;
-    let art = await Art.findOne({ where: { image_id } });
+    const { art_id, user_id, username, image_url, image_title } = req.body;
+    let art = await Art.findOne({ where: { art_id } });
 
     if (!art) {
-      art = await Art.create({ image_id, image_url, image_title });
+      art = await Art.create({ art_id, image_url, image_title });
     }
 
     const existingBookmark = await Bookmarks.findOne({
-      where: { image_id, user_id, username },
+      where: { art_id, user_id, username },
     });
 
     if (existingBookmark) {
@@ -56,7 +56,7 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    await Bookmarks.create({ image_id, user_id, username });
+    await Bookmarks.create({ art_id, user_id, username });
     res.status(201).json({ message: "Bookmark added" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -66,9 +66,9 @@ router.post("/", async (req, res) => {
 // Delete a bookmark
 router.delete("/", async (req, res) => {
   try {
-    const { image_id, user_id, username } = req.body;
+    const { art_id, user_id, username } = req.body;
     const bookmark = await Bookmarks.findOne({
-      where: { image_id, user_id, username },
+      where: { art_id, user_id, username },
     });
 
     if (!bookmark) {

@@ -34,12 +34,12 @@ router.get("/:user_id/:username", async (req, res) => {
   }
 });
 
-// Get all reviews for a specific image_id
-router.get("/image/:image_id", async (req, res) => {
+// Get all reviews for a specific art_id
+router.get("/image/:art_id", async (req, res) => {
     try {
-      const { image_id } = req.params;
+      const { art_id } = req.params;
       const reviews = await Reviews.findAll({
-        where: { image_id },
+        where: { art_id },
         include: Art,
       });
       res.json(reviews);
@@ -61,7 +61,7 @@ router.get("/", async (req, res) => {
 // Post review
 router.post("/", async (req, res) => {
   try {
-    const { image_id, user_id, username, review, rating, image_url, image_title } = req.body;
+    const { art_id, user_id, username, review, rating, image_url, image_title } = req.body;
     
     // Check if at least one of review or rating is present
     if (review === null && rating === null) {
@@ -70,19 +70,19 @@ router.post("/", async (req, res) => {
     }
 
       
-    let art = await Art.findByPk({ where: { image_id } });
+    let art = await Art.findByPk({ where: { art_id } });
 
     if (!art) {
-      art = await Art.create({ image_id, image_url, image_title });
+      art = await Art.create({ art_id, image_url, image_title });
     }
 
-    const existingReview = await Reviews.findOne({ where: { image_id, user_id, username } });
+    const existingReview = await Reviews.findOne({ where: { art_id, user_id, username } });
 
     if (existingReview) {
       await existingReview.update({ review, rating });
       res.json(existingReview);
     } else {
-      const newReview = await Reviews.create({ image_id, user_id, username, review, rating });
+      const newReview = await Reviews.create({ art_id, user_id, username, review, rating });
       res.status(201).json(newReview);
     }
   } catch (error) {
@@ -93,9 +93,9 @@ router.post("/", async (req, res) => {
 // Delete review
 router.delete("/", async (req, res) => {
   try {
-    const { image_id, user_id, username } = req.body;
+    const { art_id, user_id, username } = req.body;
 
-    const review = await Reviews.findOne({ where: { image_id, user_id, username } });
+    const review = await Reviews.findOne({ where: { art_id, user_id, username } });
 
     if (!review) {
       res.status(404).json({ error: "Review not found" });
