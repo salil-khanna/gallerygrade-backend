@@ -26,7 +26,16 @@ const Reviews = sequelize.define("Reviews", {
     },
     rating: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     },
+    date_time: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    date_actual: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    }
 });
 
 export default Reviews;

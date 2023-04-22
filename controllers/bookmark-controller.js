@@ -81,7 +81,6 @@ router.delete("/", async (req, res) => {
     await bookmark.destroy();
     res.status(200).json({ message: "Bookmark deleted" });
   } catch (error) {
-    console.log("ERRROR")
     res.status(500).json({ error: error.message });
   }
 });

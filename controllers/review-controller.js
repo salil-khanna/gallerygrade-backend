@@ -61,13 +61,7 @@ router.get("/", async (req, res) => {
 // Post review
 router.post("/", async (req, res) => {
   try {
-    const { art_id, user_id, username, review, rating, image_url, image_title } = req.body;
-    
-    // Check if at least one of review or rating is present
-    if (review === null && rating === null) {
-      res.status(400).json({ error: "At least one of review or rating should be present" });
-      return;
-    }
+    const { art_id, user_id, username, review, rating, image_url, image_title, date_time } = req.body;
       
     let art = await Art.findOne({ where: { art_id } });
 
@@ -76,13 +70,17 @@ router.post("/", async (req, res) => {
     }
 
     const existingReview = await Reviews.findOne({ where: { art_id, user_id, username } });
+    const date_actual = new Date();
     if (existingReview) {
-      await existingReview.update({ review, rating });
+      // update the existing review
+      await existingReview.update({ review, rating, date_time, date_actual });
+
       res.json(existingReview);
     } else {
-      const newReview = await Reviews.create({ art_id, user_id, username, review, rating });
+      const newReview = await Reviews.create({ art_id, user_id, username, review, rating, date_time, date_actual });
       res.status(201).json(newReview);
     }
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

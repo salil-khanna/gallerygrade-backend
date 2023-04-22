@@ -23,8 +23,21 @@ router.get("/:art_id/:user_id?", async (req, res) => {
     // Fetch all reviews for the given art
     const reviews = await Reviews.findAll({
       where: { art_id },
-      attributes: ["username", "review", "rating"],
+      attributes: ["username", "review", "rating", "date_time"],
+      order: [['date_actual', 'DESC']],
     });
+
+    // calculate average rating by looking at all reviews
+    let averageRating = 0;
+    let totalRating = 0;
+    let totalReviews = 0;
+    reviews.forEach((review) => {
+      totalRating += review.rating;
+      totalReviews += 1;
+    });
+    if (totalReviews !== 0) {
+      averageRating = totalRating / totalReviews;
+    }
 
     // Check if the art is bookmarked by the user
     let isBookmarked = false;
@@ -38,7 +51,8 @@ router.get("/:art_id/:user_id?", async (req, res) => {
       art,
       galleryInfo: {
         reviews,
-        isBookmarked
+        isBookmarked,
+        averageRating,
       }
     });
   } catch (error) {
