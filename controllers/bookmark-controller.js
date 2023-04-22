@@ -50,6 +50,7 @@ router.post("/", async (req, res) => {
     const existingBookmark = await Bookmarks.findOne({
       where: { art_id, user_id, username },
     });
+    
 
     if (existingBookmark) {
       res.status(401).json({ error: "Bookmark already exists" });
@@ -67,6 +68,7 @@ router.post("/", async (req, res) => {
 router.delete("/", async (req, res) => {
   try {
     const { art_id, user_id, username } = req.body;
+
     const bookmark = await Bookmarks.findOne({
       where: { art_id, user_id, username },
     });
@@ -79,6 +81,7 @@ router.delete("/", async (req, res) => {
     await bookmark.destroy();
     res.status(200).json({ message: "Bookmark deleted" });
   } catch (error) {
+    console.log("ERRROR")
     res.status(500).json({ error: error.message });
   }
 });

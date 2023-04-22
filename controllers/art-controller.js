@@ -36,8 +36,10 @@ router.get("/:art_id/:user_id?", async (req, res) => {
     // Return the art details, reviews, and bookmark information
     res.json({
       art,
-      reviews,
-      isBookmarked,
+      galleryInfo: {
+        reviews,
+        isBookmarked
+      }
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

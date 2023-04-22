@@ -68,16 +68,14 @@ router.post("/", async (req, res) => {
       res.status(400).json({ error: "At least one of review or rating should be present" });
       return;
     }
-
       
-    let art = await Art.findByPk({ where: { art_id } });
+    let art = await Art.findOne({ where: { art_id } });
 
     if (!art) {
       art = await Art.create({ art_id, image_url, image_title });
     }
 
     const existingReview = await Reviews.findOne({ where: { art_id, user_id, username } });
-
     if (existingReview) {
       await existingReview.update({ review, rating });
       res.json(existingReview);

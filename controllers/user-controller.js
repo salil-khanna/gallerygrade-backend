@@ -22,6 +22,15 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/all", async (req, res) => {
+  try {
+      const users = await User.findAll();
+      res.json(users);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
 // Get information about a specific user
 router.get("/:username", async (req, res) => {
   const { username } = req.params;
@@ -238,15 +247,6 @@ router.delete("/delete-all", async (req, res) => {
     try {
         await User.destroy({ where: {} });
         res.status(200).json({ message: "success" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-router.get("/all", async (req, res) => {
-    try {
-        const users = await User.findAll();
-        res.json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
