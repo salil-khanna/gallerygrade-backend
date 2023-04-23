@@ -7,17 +7,39 @@ import Sequelize from "sequelize";
 
 const router = express.Router();
 
+const associatedArtFunction = async (bookmarks) => {
+  const associatedArt = {};
+
+  // Using map with Promise.all
+  await Promise.all(bookmarks.map(async (bookmark) => {
+    const art = await Art.findOne({
+      where: { art_id: bookmark.art_id },
+    });
+    associatedArt[bookmark.art_id] = art;
+  }));
+
+  return associatedArt;
+};
+
+
 // Get 3 random bookmarks for a user
 router.get("/random/:user_id/:username", async (req, res) => {
 try {
     const { user_id, username } = req.params;
     const bookmarks = await Bookmarks.findAll({
       where: { user_id, username },
-      include: Art,
+      attributes: ["art_id", "bookmark_id"],
       limit: 3,
       order: Sequelize.literal("rand()"),
     });
-    res.json(bookmarks);
+    const associatedArt = await associatedArtFunction(bookmarks);
+
+    const consolidatedData = bookmarks.map(bookmark => {
+      const art = associatedArt[bookmark.art_id];
+      return { ...bookmark.toJSON(), art };
+    });
+
+    res.json(consolidatedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -27,11 +49,20 @@ try {
 router.get("/:user_id/:username", async (req, res) => {
   try {
     const { user_id, username } = req.params;
+
     const bookmarks = await Bookmarks.findAll({
       where: { user_id, username },
-      include: Art,
+      // only include art_id, bookmark_id
+      attributes: ["art_id", "bookmark_id"],
     });
-    res.json(bookmarks);
+
+    const associatedArt = await associatedArtFunction(bookmarks);
+    const consolidatedData = bookmarks.map(bookmark => {
+      const art = associatedArt[bookmark.art_id];
+      return { ...bookmark.toJSON(), art };
+    });
+
+    res.json(consolidatedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

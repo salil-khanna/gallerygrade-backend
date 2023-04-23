@@ -3,20 +3,51 @@ import User from "../models/user.js";
 import Bookmarks from "../models/bookmarks.js";
 import bcrypt from "bcrypt";
 import Sequelize from "sequelize";
+import Reviews from "../models/reviews.js";
 
 
 const router = express.Router();
 
+const associatedAverageRatingFunction = async (users) => {
+  const averageRatings = {};
+
+  // Using map with Promise.all
+  await Promise.all(users.map(async (user) => {
+    const reviews = await Reviews.findAll({
+      where: { username: user.username },
+    });
+    if (reviews.length === 0) {
+      averageRatings[user.username] = 0;
+      return;
+    }
+    // calulate average rating based on all their reviews, review.rating
+    let sum = 0;
+    reviews.forEach(review => {
+      sum += review.rating;
+    });
+    const averageRating = sum / reviews.length;
+
+    averageRatings[user.username] = averageRating;
+  }));
+
+  return averageRatings;
+};
 
 // Get 4 random users
 router.get("/", async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ["username", "aboutMe", "favoriteArtStyle"],
+      attributes: ["username", "favoriteArtStyle"],
       limit: 5,
       order: Sequelize.literal("rand()"),
     });
-    res.json(users);
+
+    const averageRatings = await associatedAverageRatingFunction(users);
+    const consolidatedData = users.map(user => {
+      const averageRating = averageRatings[user.username];
+      return { ...user.toJSON(), averageRating: averageRating };
+    });
+    res.json(consolidatedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -1,8 +1,23 @@
 import express from "express";
 import Reviews from "../models/reviews.js";
 import Art from "../models/art.js";
+import Sequelize from "sequelize";
 
 const router = express.Router();
+
+const associatedArtFunction = async (reviews) => {
+  const associatedArt = {};
+
+  // Using map with Promise.all
+  await Promise.all(reviews.map(async (review) => {
+    const art = await Art.findOne({
+      where: { art_id: review.art_id },
+    });
+    associatedArt[review.art_id] = art;
+  }));
+
+  return associatedArt;
+};
 
 // Get any random 3 reviews from table given user_id, username; also include properties from art.js
 router.get("/random/:user_id/:username", async (req, res) => {
@@ -10,11 +25,17 @@ router.get("/random/:user_id/:username", async (req, res) => {
     const { user_id, username } = req.params;
     const randomReviews = await Reviews.findAll({
       where: { user_id, username },
-      include: Art,
       limit: 3,
       order: Sequelize.literal("rand()"),
     });
-    res.json(randomReviews);
+
+    const associatedArt = await associatedArtFunction(randomReviews);
+    const consolidatedData = randomReviews.map(review => {
+      const art = associatedArt[review.art_id];
+      return { ...review.toJSON(), art };
+    });
+
+    res.json(consolidatedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -26,9 +47,14 @@ router.get("/:user_id/:username", async (req, res) => {
     const { user_id, username } = req.params;
     const reviews = await Reviews.findAll({
       where: { user_id, username },
-      include: Art,
     });
-    res.json(reviews);
+    const associatedArt = await associatedArtFunction(reviews);
+    const consolidatedData = reviews.map(review => {
+      const art = associatedArt[review.art_id];
+      return { ...review.toJSON(), art };
+    });
+
+    res.json(consolidatedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
