@@ -27,6 +27,7 @@ router.get("/random/:user_id/:username", async (req, res) => {
       where: { user_id, username },
       limit: 3,
       order: Sequelize.literal("rand()"),
+      attributes: { exclude: ["user_id"] },
     });
 
     const associatedArt = await associatedArtFunction(randomReviews);
@@ -48,6 +49,7 @@ router.get("/:username", async (req, res) => {
     const reviews = await Reviews.findAll({
       where: { username },
       order: [["date_actual", "DESC"]],
+      attributes: { exclude: ["user_id"] },
     });
 
     const associatedArt = await associatedArtFunction(reviews);
@@ -73,6 +75,7 @@ router.get("/", async (req, res) => {
     const reviews = await Reviews.findAll({
       limit: 6,
       order: [["date_actual", "DESC"]],
+      attributes: { exclude: ["user_id"] },
     });
 
     const associatedArt = await associatedArtFunction(reviews);
