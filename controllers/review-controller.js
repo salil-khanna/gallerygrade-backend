@@ -42,12 +42,39 @@ router.get("/random/:user_id/:username", async (req, res) => {
 });
 
 // Get all reviews from table given user_id, username, include properties from art.js
-router.get("/:user_id/:username", async (req, res) => {
+router.get("/:username", async (req, res) => {
   try {
-    const { user_id, username } = req.params;
+    const { username } = req.params;
     const reviews = await Reviews.findAll({
-      where: { user_id, username },
+      where: { username },
+      order: [["date_actual", "DESC"]],
     });
+
+    const associatedArt = await associatedArtFunction(reviews);
+    const consolidatedData = reviews.map(review => {
+      const art = associatedArt[review.art_id];
+      return { ...review.toJSON(), art };
+    });
+
+    // calculate average rating of all reviews as new property
+    const averageRating = consolidatedData.reduce((acc, review) => {
+      return acc + review.rating;
+    }, 0) / consolidatedData.length;
+
+    res.json({consolidatedData, averageRating});
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+  
+// Get 5 most recent reviews in table, include properties from art.js
+router.get("/", async (req, res) => {
+  try {
+    const reviews = await Reviews.findAll({
+      limit: 6,
+      order: [["date_actual", "DESC"]],
+    });
+
     const associatedArt = await associatedArtFunction(reviews);
     const consolidatedData = reviews.map(review => {
       const art = associatedArt[review.art_id];
@@ -55,30 +82,7 @@ router.get("/:user_id/:username", async (req, res) => {
     });
 
     res.json(consolidatedData);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
-// Get all reviews for a specific art_id
-router.get("/image/:art_id", async (req, res) => {
-    try {
-      const { art_id } = req.params;
-      const reviews = await Reviews.findAll({
-        where: { art_id },
-        include: Art,
-      });
-      res.json(reviews);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-  
-// Get all reviews in the table
-router.get("/", async (req, res) => {
-  try {
-    const reviews = await Reviews.findAll({ include: Art });
-    res.json(reviews);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
