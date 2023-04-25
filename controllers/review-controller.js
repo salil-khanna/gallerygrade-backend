@@ -3,6 +3,7 @@ import Reviews from "../models/reviews.js";
 import Art from "../models/art.js";
 import Sequelize from "sequelize";
 import Moderators from "../models/moderators.js";
+import User from "../models/user.js";
 
 const router = express.Router();
 
@@ -96,6 +97,15 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { art_id, user_id, username, review, rating, image_url, image_title, date_time } = req.body;
+
+    // check that the user exists
+    const user = await User.findOne({ where: { user_id, username } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+
       
     let art = await Art.findOne({ where: { art_id } });
 

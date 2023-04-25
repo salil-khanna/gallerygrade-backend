@@ -72,6 +72,13 @@ router.get("/:user_id/:username", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { art_id, user_id, username, image_url, image_title } = req.body;
+    // check that the user exists
+    const user = await User.findOne({ where: { user_id, username } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
     let art = await Art.findOne({ where: { art_id } });
 
     if (!art) {

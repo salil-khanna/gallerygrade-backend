@@ -78,11 +78,32 @@ router.get("/:username", async (req, res) => {
       return;
     }
 
-    res.json(user);
+    // get a user with the id
+    const user_with_id = await User.findOne({
+      attributes: ["user_id"],
+      where: { username },
+    });
+
+    // get moderator status
+    const moderator = await Moderators.findOne({
+      where: { user_id: user_with_id.user_id },
+    });
+
+    // Convert the user instance to a plain JavaScript object
+    const userData = user.get({ plain: true });
+
+    if (moderator) {
+      userData.moderator = true;
+    } else {
+      userData.moderator = false;
+    }
+
+    res.json(userData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get("/:username/:user_id", async (req, res) => {
     try {
@@ -301,6 +322,39 @@ router.delete("/", async (req, res) => {
       res.status(500).json({ error: error.message });
     }
 });
+
+// develop a delete user endpoint but only for mods
+router.delete("/mod", async (req, res) => {
+  try {
+    const { usernameToDelete, user_id } = req.body;
+    const userToDelete = await User.findOne({ where: { username: usernameToDelete } });
+  
+    if (!userToDelete) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+
+    console.log(usernameToDelete)
+
+    const moderator = await Moderators.findOne({ where: { user_id } });
+    if (!moderator) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    await userToDelete.destroy();
+    await Bookmarks.destroy({ where: { user_id: userToDelete.user_id } });
+    await Bookmarks.destroy({ where: { username: userToDelete.username } });
+
+    await Reviews.destroy({ where: { user_id: userToDelete.user_id } });
+    await Reviews.destroy({ where: { username: userToDelete.username } });
+
+    res.status(200).json({ message: "User deleted" });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+})
 
 export default router;
 
