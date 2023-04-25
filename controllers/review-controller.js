@@ -135,10 +135,17 @@ router.delete("/", async (req, res) => {
   try {
     const { art_id, user_id, username } = req.body;
 
+    // check that the user exists
+    const user = await User.findOne({ where: { user_id, username } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
     const review = await Reviews.findOne({ where: { art_id, user_id, username } });
 
     if (!review) {
-      res.status(404).json({ error: "Review not found" });
+      res.status(401).json({ error: "Review not found" });
       return;
     }
 
