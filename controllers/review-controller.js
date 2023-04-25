@@ -2,6 +2,7 @@ import express from "express";
 import Reviews from "../models/reviews.js";
 import Art from "../models/art.js";
 import Sequelize from "sequelize";
+import Moderators from "../models/moderators.js";
 
 const router = express.Router();
 
@@ -128,6 +129,32 @@ router.delete("/", async (req, res) => {
 
     if (!review) {
       res.status(404).json({ error: "Review not found" });
+      return;
+    }
+
+    await review.destroy();
+    res.status(200).json({ message: "Review deleted" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete review as mod
+router.delete("/mod", async (req, res) => {
+  try {
+    const { art_id, review_id, user_id } = req.body;
+
+    const review = await Reviews.findOne({ where: { art_id, review_id } });
+
+    if (!review) {
+      res.status(404).json({ error: "Review not found" });
+      return;
+    }
+
+    // check if user is a moderator
+    const moderator = await Moderators.findOne({ where: { user_id } });
+    if (!moderator) {
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 

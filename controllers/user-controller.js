@@ -4,6 +4,7 @@ import Bookmarks from "../models/bookmarks.js";
 import bcrypt from "bcrypt";
 import Sequelize from "sequelize";
 import Reviews from "../models/reviews.js";
+import Moderators from "../models/moderators.js";
 
 
 const router = express.Router();
@@ -111,6 +112,7 @@ router.post("/register", async (req, res) => {
       secretAnswer,
       aboutMe,
       favoriteArtStyle,
+      modCode,
     } = req.body;
 
 
@@ -134,10 +136,19 @@ router.post("/register", async (req, res) => {
       favoriteArtStyle,
     });
 
-    res.status(201).json({
+    let isMod = false;
+    if (modCode === process.env.MOD_CODE) {
+      await Moderators.create({
         user_id: newUser.user_id,
-        username: newUser.username,
-    });
+      });
+      isMod = true;
+    }
+
+    res.status(201).json({
+      user_id: newUser.user_id,
+      username: newUser.username,
+      isMod: isMod,
+  });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -162,7 +173,13 @@ router.post("/login", async (req, res) => {
       return;
     }
 
-    res.status(200).json({ user_id: user.user_id });
+    let isMod = false;
+    const mod = await Moderators.findOne({ where: { user_id: user.user_id } });
+    if (mod) {
+      isMod = true;
+    }
+
+    res.status(200).json({ user_id: user.user_id, isMod: isMod });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -215,7 +232,13 @@ router.put("/reset-password", async (req, res) => {
     const hashedNewPassword = await bcrypt.hash(password, 10);
     await user.update({ password: hashedNewPassword });
 
-    res.status(201).json({ user_id: user_id });
+    let isMod = false;
+    const mod = await Moderators.findOne({ where: { user_id } });
+    if (mod) {
+      isMod = true;
+    }
+
+    res.status(201).json({ user_id: user_id, isMod: isMod });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -267,6 +290,12 @@ router.delete("/", async (req, res) => {
       await Bookmarks.destroy({ where: { user_id } });
       await Reviews.destroy({ where: { user_id } });
       await user.destroy();
+
+      // if user is a mod, delete from mod table
+      const mod = await Moderators.findOne({ where: { user_id } });
+      if (mod) {
+        await mod.destroy();
+      }
       res.status(200).json({ message: "success" });
     } catch (error) {
       res.status(500).json({ error: error.message });

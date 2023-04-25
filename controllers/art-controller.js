@@ -23,7 +23,7 @@ router.get("/:art_id/:user_id?", async (req, res) => {
     // Fetch all reviews for the given art
     const reviews = await Reviews.findAll({
       where: { art_id },
-      attributes: ["username", "review", "rating", "date_time"],
+      attributes: ["username", "review", "rating", "date_time", "review_id"],
       order: [['date_actual', 'DESC']],
     });
 
