@@ -334,8 +334,6 @@ router.delete("/mod", async (req, res) => {
       return;
     }
 
-    console.log(usernameToDelete)
-
     const moderator = await Moderators.findOne({ where: { user_id } });
     if (!moderator) {
       res.status(401).json({ error: "Unauthorized" });

@@ -4,6 +4,7 @@ import express from "express";
 import Art from "../models/art.js";
 import Bookmarks from "../models/bookmarks.js";
 import Sequelize from "sequelize";
+import User from "../models/user.js";
 
 const router = express.Router();
 
