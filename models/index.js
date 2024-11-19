@@ -15,7 +15,7 @@ import {Sequelize} from "sequelize";
 //             },
 //         },
 //     });
-const postgresUrl = process.env.DATABASE_URL || "";
+const postgresUrl = process.env.POSTGRES_URL || "";
 const sequelize = new Sequelize(postgresUrl);
 
 export default sequelize;
