@@ -31,7 +31,7 @@ try {
       where: { user_id, username },
       attributes: ["art_id", "bookmark_id"],
       limit: 3,
-      order: Sequelize.literal("rand()"),
+      order: Sequelize.literal("random()"),
     });
     const associatedArt = await associatedArtFunction(bookmarks);
 

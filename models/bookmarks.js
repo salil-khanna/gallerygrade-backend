@@ -10,7 +10,7 @@ const Bookmarks = sequelize.define("Bookmarks", {
         unique: true,
     },
   art_id: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   username: {

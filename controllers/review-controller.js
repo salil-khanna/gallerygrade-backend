@@ -28,7 +28,7 @@ router.get("/random/:user_id/:username", async (req, res) => {
     const randomReviews = await Reviews.findAll({
       where: { user_id, username },
       limit: 3,
-      order: Sequelize.literal("rand()"),
+      order: Sequelize.literal("random()"),
       attributes: { exclude: ["user_id"] },
     });
 

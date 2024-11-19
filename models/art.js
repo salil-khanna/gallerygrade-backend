@@ -3,7 +3,7 @@ import { DataTypes } from "sequelize";
 
 const Art = sequelize.define("Art", {
   art_id: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false,
     primaryKey: true,
     unique: true,

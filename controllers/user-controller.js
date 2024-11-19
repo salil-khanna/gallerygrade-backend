@@ -40,7 +40,7 @@ router.get("/", async (req, res) => {
     const users = await User.findAll({
       attributes: ["username", "favoriteArtStyle"],
       limit: 5,
-      order: Sequelize.literal("rand()"),
+      order: Sequelize.literal("random()"),
     });
 
     const averageRatings = await associatedAverageRatingFunction(users);
