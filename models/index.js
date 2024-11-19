@@ -1,4 +1,4 @@
-require('pg')
+import "pg";
 import {Sequelize} from "sequelize";
 
 
